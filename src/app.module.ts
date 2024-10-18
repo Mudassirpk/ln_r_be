@@ -8,6 +8,7 @@ import { PrismaModule } from './shared/prisma/prisma.module';
 import { JwtService } from './shared/jwt/jwt.service';
 import { PostModule } from './modules/post/post.module';
 import { CommentModule } from './modules/comment/comment.module';
+import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { CommentModule } from './modules/comment/comment.module';
     PrismaModule,
     PostModule,
     CommentModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, JwtService],

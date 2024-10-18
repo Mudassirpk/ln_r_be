@@ -43,6 +43,21 @@ export class AuthService {
         where: {
           email: loginDto.email,
         },
+        include: {
+          notifications: {
+            where: {
+              seen: false,
+            },
+            include: {
+              actor: {
+                select: {
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
       });
 
       if (!user)

@@ -2,10 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { CreatePostDTO } from './dto/create';
 import { LikeDTO } from './dto/like';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class PostService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private notification: NotificationService,
+  ) {}
 
   async create(createPostDTO: CreatePostDTO) {
     try {
@@ -86,6 +90,31 @@ export class PostService {
             },
           },
         },
+      });
+
+      const postAuthor = (
+        await this.prisma.post.findUnique({
+          where: {
+            id: likeDto.post,
+          },
+          select: {
+            author: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        })
+      ).author.id;
+
+      const actor = await this.prisma.user.findUnique({
+        where: { id: likeDto.from },
+      });
+
+      await this.notification.create({
+        actorId: likeDto.from,
+        to: postAuthor,
+        activity: `${actor.name} liked your post`,
       });
 
       return {
