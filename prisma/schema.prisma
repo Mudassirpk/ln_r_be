@@ -14,15 +14,17 @@ datasource db {
 }
 
 model user {
-  id        String    @unique @default(uuid())
-  name      String
-  email     String    @unique
-  password  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(now())
-  post      post[]
-  likes     like[]
-  comment   comment[]
+  id            String         @unique @default(uuid())
+  name          String
+  email         String         @unique
+  password      String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now())
+  post          post[]
+  likes         like[]
+  comment       comment[]
+  actions       notification[] @relation("actor")
+  notifications notification[] @relation("receiver")
 }
 
 model post {
@@ -51,4 +53,14 @@ model comment {
   createdAt DateTime @default(now())
   post      post     @relation(fields: [postId], references: [id])
   postId    String
+}
+
+model notification {
+  id       String  @unique @default(uuid())
+  activity String
+  to       user    @relation("receiver", fields: [userId], references: [id])
+  userId   String
+  actor    user?   @relation("actor", fields: [actorId], references: [id])
+  actorId  String?
+  seen     Boolean @default(false)
 }
