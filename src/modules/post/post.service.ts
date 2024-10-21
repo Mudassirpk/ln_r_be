@@ -3,22 +3,38 @@ import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { CreatePostDTO } from './dto/create';
 import { LikeDTO } from './dto/like';
 import { NotificationService } from '../notification/notification.service';
+import { CloudinaryService } from 'src/shared/cloudinary/cloudinary.service';
 
 @Injectable()
 export class PostService {
   constructor(
     private readonly prisma: PrismaService,
     private notification: NotificationService,
+    private readonly cloudinary: CloudinaryService,
   ) {}
 
-  async create(createPostDTO: CreatePostDTO) {
+  async create(createPostDTO: CreatePostDTO, image: Express.Multer.File) {
     try {
+      const imageUploaded = await this.cloudinary.uploadImage(image);
+      console.log('image: ', imageUploaded);
+      const postImage = await this.prisma.image.create({
+        data: {
+          url: imageUploaded.url,
+          public_id: imageUploaded.public_id,
+        },
+      });
+
       const post = await this.prisma.post.create({
         data: {
           message: createPostDTO.message,
           author: {
             connect: {
               id: createPostDTO.userId,
+            },
+          },
+          image: {
+            connect: {
+              id: postImage.id,
             },
           },
         },
@@ -65,12 +81,14 @@ export class PostService {
           include: {
             from: {
               select: {
+                id: true,
                 name: true,
                 email: true,
               },
             },
           },
         },
+        image: true,
       },
     });
   }

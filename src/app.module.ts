@@ -9,6 +9,10 @@ import { JwtService } from './shared/jwt/jwt.service';
 import { PostModule } from './modules/post/post.module';
 import { CommentModule } from './modules/comment/comment.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { MulterModule } from '@nestjs/platform-express';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import { CloudinaryModule } from './shared/cloudinary/cloudinary.module';
+import { multerStorage } from './shared/lib/utils';
 
 @Module({
   imports: [
@@ -20,6 +24,7 @@ import { NotificationModule } from './modules/notification/notification.module';
     PostModule,
     CommentModule,
     NotificationModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, JwtService],

@@ -37,6 +37,23 @@ export class AuthService {
     }
   }
 
+  async user(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id,
+      },
+    });
+    const postsCount = await this.prisma.post.count({
+      where: {
+        author: {
+          id: user.id,
+        },
+      },
+    });
+    user.password = null;
+    return { ...user, posts: postsCount };
+  }
+
   async login(loginDto: LoginDTO) {
     try {
       const user = await this.prisma.user.findUnique({
