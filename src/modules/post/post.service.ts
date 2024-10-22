@@ -69,49 +69,63 @@ export class PostService {
     }
   }
 
-  async get() {
-    return await this.prisma.post.findMany({
-      orderBy: {
-        createdAt: 'desc',
+  async get(cursor?: string, limit?: string) {
+    const includes = {
+      likes: {
+        include: {
+          from: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
       },
-      include: {
-        likes: {
-          include: {
-            from: {
-              select: {
-                name: true,
-                email: true,
-              },
+      author: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          followers: {
+            select: {
+              id: true,
+              followingUserId: true,
             },
           },
         },
-        author: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            followers: {
-              select: {
-                id: true,
-                followingUserId: true,
-              },
-            },
-          },
-        },
-        comments: {
-          include: {
-            from: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
-        },
-        image: true,
       },
-    });
+      comments: {
+        include: {
+          from: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
+      image: true,
+    };
+
+    if (cursor && limit) {
+      const posts = await this.prisma.post.findMany({
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: includes,
+        skip: parseInt(cursor) * parseInt(limit),
+        take: parseInt(limit),
+      });
+      return { posts, lastCursor: cursor };
+    } else {
+      return await this.prisma.post.findMany({
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: includes,
+      });
+    }
   }
 
   async like(likeDto: LikeDTO) {

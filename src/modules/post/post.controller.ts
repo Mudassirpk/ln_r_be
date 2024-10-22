@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   UploadedFile,
   UploadedFiles,
   UseGuards,
@@ -31,8 +32,8 @@ export class PostController {
   }
 
   @Get('')
-  get() {
-    return this.postService.get();
+  get(@Query() { cursor, limit }: { cursor: string; limit: string }) {
+    return this.postService.get(cursor, limit);
   }
 
   @Post('like')
