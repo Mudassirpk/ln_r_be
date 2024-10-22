@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   UploadedFile,
   UploadedFiles,
@@ -37,5 +38,10 @@ export class PostController {
   @Post('like')
   like(@Body() body: LikeDTO) {
     return this.postService.like(body);
+  }
+
+  @Get(':userId')
+  postsByUser(@Param('userId') userId: string) {
+    return this.postService.postsByUser(userId);
   }
 }

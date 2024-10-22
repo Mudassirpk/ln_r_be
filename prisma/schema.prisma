@@ -14,17 +14,35 @@ datasource db {
 }
 
 model user {
-  id            String         @unique @default(uuid())
+  id            String          @unique @default(uuid())
   name          String
-  email         String         @unique
+  email         String          @unique
   password      String
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @default(now())
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now())
   post          post[]
   likes         like[]
   comment       comment[]
-  actions       notification[] @relation("actor")
-  notifications notification[] @relation("receiver")
+  actions       notification[]  @relation("actor")
+  notifications notification[]  @relation("receiver")
+  followers     userFollowing[]
+  following     userFollowing[] @relation("following")
+}
+
+model userFollowing {
+  id              String           @unique @default(uuid())
+  followedUserId  String
+  followedUser    user             @relation(fields: [followedUserId], references: [id])
+  followingUserId String
+  followingUser   user             @relation("following", fields: [followingUserId], references: [id])
+  status          FOLLOWING_STATUS @default(PENDING)
+  createdAt       DateTime         @default(now())
+}
+
+enum FOLLOWING_STATUS {
+  PENDING
+  ACCEPTED
+  REJECTED
 }
 
 model post {

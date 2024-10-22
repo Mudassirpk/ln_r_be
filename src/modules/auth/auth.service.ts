@@ -42,16 +42,12 @@ export class AuthService {
       where: {
         id,
       },
-    });
-    const postsCount = await this.prisma.post.count({
-      where: {
-        author: {
-          id: user.id,
-        },
+      include: {
+        post: true,
       },
     });
     user.password = null;
-    return { ...user, posts: postsCount };
+    return { ...user, posts: user.post.length };
   }
 
   async login(loginDto: LoginDTO) {

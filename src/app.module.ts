@@ -13,6 +13,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import { CloudinaryModule } from './shared/cloudinary/cloudinary.module';
 import { multerStorage } from './shared/lib/utils';
+import { FriendsModule } from './modules/friends/friends.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { multerStorage } from './shared/lib/utils';
     CommentModule,
     NotificationModule,
     CloudinaryModule,
+    FriendsModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, JwtService],

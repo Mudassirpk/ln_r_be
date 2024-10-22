@@ -15,30 +15,45 @@ export class PostService {
 
   async create(createPostDTO: CreatePostDTO, image: Express.Multer.File) {
     try {
-      const imageUploaded = await this.cloudinary.uploadImage(image);
-      console.log('image: ', imageUploaded);
-      const postImage = await this.prisma.image.create({
-        data: {
-          url: imageUploaded.url,
-          public_id: imageUploaded.public_id,
-        },
-      });
+      let postImage;
+      let post;
 
-      const post = await this.prisma.post.create({
-        data: {
-          message: createPostDTO.message,
-          author: {
-            connect: {
-              id: createPostDTO.userId,
+      if (image) {
+        const imageUploaded = await this.cloudinary.uploadImage(image);
+        postImage = await this.prisma.image.create({
+          data: {
+            url: imageUploaded.url,
+            public_id: imageUploaded.public_id,
+          },
+        });
+
+        post = await this.prisma.post.create({
+          data: {
+            message: createPostDTO.message,
+            author: {
+              connect: {
+                id: createPostDTO.userId,
+              },
+            },
+            image: {
+              connect: {
+                id: postImage?.id,
+              },
             },
           },
-          image: {
-            connect: {
-              id: postImage.id,
+        });
+      } else {
+        post = await this.prisma.post.create({
+          data: {
+            message: createPostDTO.message,
+            author: {
+              connect: {
+                id: createPostDTO.userId,
+              },
             },
           },
-        },
-      });
+        });
+      }
 
       if (post)
         return {
@@ -75,6 +90,12 @@ export class PostService {
             id: true,
             name: true,
             email: true,
+            followers: {
+              select: {
+                id: true,
+                followingUserId: true,
+              },
+            },
           },
         },
         comments: {
@@ -146,5 +167,55 @@ export class PostService {
         message: 'Internal server error',
       };
     }
+  }
+
+  async postsByUser(userId: string) {
+    return await this.prisma.post.findMany({
+      where: {
+        author: {
+          id: userId,
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        likes: {
+          include: {
+            from: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            followers: {
+              select: {
+                id: true,
+                followingUserId: true,
+              },
+            },
+          },
+        },
+        comments: {
+          include: {
+            from: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+        image: true,
+      },
+    });
   }
 }
