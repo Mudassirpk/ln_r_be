@@ -16,6 +16,7 @@ import { AuthGaurd } from 'guards/auth/auth.guard';
 import { LoginDTO } from '../auth/dto/login';
 import { LikeDTO } from './dto/like';
 import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
+import { UserId } from 'decorators/userId.decorator';
 
 @Controller('post')
 export class PostController {
@@ -31,9 +32,13 @@ export class PostController {
     return this.postService.create(body, images[0]);
   }
 
+  @UseGuards(AuthGaurd)
   @Get('')
-  get(@Query() { cursor, limit }: { cursor: string; limit: string }) {
-    return this.postService.get(cursor, limit);
+  get(
+    @Query() { cursor, limit }: { cursor: string; limit: string },
+    @UserId() userId: string,
+  ) {
+    return this.postService.get({ cursor, limit, userId });
   }
 
   @Post('like')

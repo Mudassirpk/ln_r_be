@@ -4,6 +4,8 @@ import { CreatePostDTO } from './dto/create';
 import { LikeDTO } from './dto/like';
 import { NotificationService } from '../notification/notification.service';
 import { CloudinaryService } from 'src/shared/cloudinary/cloudinary.service';
+import { extractHashtags } from 'src/shared/lib/post_utils';
+import { IntrestService } from '../intrest/intrest.service';
 
 @Injectable()
 export class PostService {
@@ -11,6 +13,7 @@ export class PostService {
     private readonly prisma: PrismaService,
     private notification: NotificationService,
     private readonly cloudinary: CloudinaryService,
+    private readonly intrest: IntrestService,
   ) {}
 
   async create(createPostDTO: CreatePostDTO, image: Express.Multer.File) {
@@ -55,6 +58,31 @@ export class PostService {
         });
       }
 
+      // manage post tags
+      const hashtags_in_post = extractHashtags(createPostDTO.message);
+
+      if (hashtags_in_post.length > 0) {
+        await this.intrest.createIfNotPresent(hashtags_in_post);
+        const save_hastags = await this.prisma.intrest.findMany({
+          where: {
+            title: {
+              in: hashtags_in_post,
+            },
+          },
+        });
+        await this.intrest.create_posts_tags_for_new_post(
+          save_hastags,
+          post.id,
+        );
+        // update user tags
+
+        await this.intrest.update_user_tags(
+          hashtags_in_post,
+          createPostDTO.userId,
+        );
+      }
+      // ---- manage post tags
+
       if (post)
         return {
           success: true,
@@ -69,7 +97,15 @@ export class PostService {
     }
   }
 
-  async get(cursor?: string, limit?: string) {
+  async get({
+    cursor,
+    limit,
+    userId,
+  }: {
+    cursor?: string;
+    limit?: string;
+    userId: string;
+  }) {
     const includes = {
       likes: {
         include: {
@@ -86,6 +122,7 @@ export class PostService {
           id: true,
           name: true,
           email: true,
+          profile_pic: true,
           followers: {
             select: {
               id: true,
@@ -107,9 +144,52 @@ export class PostService {
       },
       image: true,
     };
+    const user_intrests = await this.prisma.user_intrest.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        intrest: true,
+      },
+    });
 
     if (cursor && limit) {
       const posts = await this.prisma.post.findMany({
+        where: {
+          author: {
+            following: {
+              some: {
+                followingUserId: userId,
+              },
+            },
+            followers: {
+              some: {
+                followedUserId: userId,
+              },
+            },
+          },
+          OR: [
+            {
+              post_tags: {
+                some: {
+                  tag: {
+                    title: {
+                      contains: user_intrests
+                        .map((ui) => ui.intrest.title)
+                        .join(' '),
+                      mode: 'insensitive',
+                    },
+                  },
+                },
+              },
+            },
+            {
+              post_tags: {
+                none: {},
+              },
+            },
+          ],
+        },
         orderBy: {
           createdAt: 'desc',
         },
@@ -120,6 +200,33 @@ export class PostService {
       return { posts, lastCursor: cursor };
     } else {
       return await this.prisma.post.findMany({
+        where: {
+          OR: [
+            {
+              message: {
+                contains: user_intrests.map((ui) => ui.intrest.title).join(' '),
+                mode: 'insensitive',
+              },
+              post_tags: {
+                some: {
+                  tag: {
+                    title: {
+                      contains: user_intrests
+                        .map((ui) => ui.intrest.title)
+                        .join(' '),
+                      mode: 'insensitive',
+                    },
+                  },
+                },
+              },
+            },
+            {
+              post_tags: {
+                none: {},
+              },
+            },
+          ],
+        },
         orderBy: {
           createdAt: 'desc',
         },

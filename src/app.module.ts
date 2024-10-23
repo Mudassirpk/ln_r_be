@@ -14,6 +14,7 @@ import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import { CloudinaryModule } from './shared/cloudinary/cloudinary.module';
 import { multerStorage } from './shared/lib/utils';
 import { FriendsModule } from './modules/friends/friends.module';
+import { IntrestModule } from './modules/intrest/intrest.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { FriendsModule } from './modules/friends/friends.module';
     NotificationModule,
     CloudinaryModule,
     FriendsModule,
+    IntrestModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, JwtService],

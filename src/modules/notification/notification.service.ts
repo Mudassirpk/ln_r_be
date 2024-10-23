@@ -64,4 +64,26 @@ export class NotificationService {
       console.log(error);
     }
   }
+
+  async get_notifications_for_user(userId: string) {
+    return await this.prisma.notification.findMany({
+      where: {
+        to: {
+          id: userId,
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        actor: {
+          select: {
+            name: true,
+            email: true,
+            id: true,
+          },
+        },
+      },
+    });
+  }
 }

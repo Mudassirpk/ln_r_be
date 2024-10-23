@@ -5,6 +5,7 @@ import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { JwtService } from 'src/shared/jwt/jwt.service';
 import { NotificationService } from '../notification/notification.service';
 import { CloudinaryService } from 'src/shared/cloudinary/cloudinary.service';
+import { IntrestService } from '../intrest/intrest.service';
 
 @Module({
   controllers: [PostController],
@@ -14,6 +15,7 @@ import { CloudinaryService } from 'src/shared/cloudinary/cloudinary.service';
     JwtService,
     NotificationService,
     CloudinaryService,
+    IntrestService,
   ],
 })
 export class PostModule {}
