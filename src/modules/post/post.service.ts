@@ -14,7 +14,7 @@ export class PostService {
     private notification: NotificationService,
     private readonly cloudinary: CloudinaryService,
     private readonly intrest: IntrestService,
-  ) {}
+  ) { }
 
   async create(createPostDTO: CreatePostDTO, image: Express.Multer.File) {
     try {
@@ -144,6 +144,7 @@ export class PostService {
       },
       image: true,
     };
+
     const user_intrests = await this.prisma.user_intrest.findMany({
       where: {
         userId,
@@ -156,19 +157,22 @@ export class PostService {
     if (cursor && limit) {
       const posts = await this.prisma.post.findMany({
         where: {
-          author: {
-            following: {
-              some: {
-                followingUserId: userId,
-              },
-            },
-            followers: {
-              some: {
-                followedUserId: userId,
-              },
-            },
-          },
           OR: [
+            {
+              author: {
+                id: userId,
+                following: {
+                  some: {
+                    followingUserId: userId,
+                  },
+                },
+                followers: {
+                  some: {
+                    followedUserId: userId,
+                  },
+                },
+              }
+            },
             {
               post_tags: {
                 some: {
