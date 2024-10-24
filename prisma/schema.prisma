@@ -38,6 +38,7 @@ model intrest {
   used_count   Int
   user_intrest user_intrest[]
   post_tag     post_tag[]
+  createdAt    DateTime       @default(now())
 }
 
 model post_tag {
