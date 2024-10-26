@@ -6,6 +6,7 @@ import { NotificationService } from '../notification/notification.service';
 import { CloudinaryService } from 'src/shared/cloudinary/cloudinary.service';
 import { extractHashtags } from 'src/shared/lib/post_utils';
 import { IntrestService } from '../intrest/intrest.service';
+import { post } from '@prisma/client';
 
 @Injectable()
 export class PostService {
@@ -18,8 +19,8 @@ export class PostService {
 
   async create(createPostDTO: CreatePostDTO, image: Express.Multer.File) {
     try {
-      let postImage;
-      let post;
+      let postImage: any;
+      let post: post;
 
       if (image) {
         const imageUploaded = await this.cloudinary.uploadImage(image);
@@ -270,6 +271,18 @@ export class PostService {
           },
         })
       ).author.id;
+
+      const post_tags = await this.prisma.post_tag.findMany({
+        where: {
+          postId: likeDto.post
+        },
+        include: {
+          tag: true
+        }
+      })
+
+      // update user tags upon user interactions
+      await this.intrest.update_user_tags(post_tags.map(pt => pt.tag.title), likeDto.from)
 
       const actor = await this.prisma.user.findUnique({
         where: { id: likeDto.from },

@@ -4,7 +4,7 @@ import { PrismaService } from 'src/shared/prisma/prisma.service';
 
 @Injectable()
 export class IntrestService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async createIfNotPresent(hashtags: string[]) {
     try {
@@ -95,6 +95,7 @@ export class IntrestService {
   }
 
   async update_user_tags(tags: string[], userId: string) {
+    // check if user has some or all of used tags
     const present_user_tags = await this.prisma.user_intrest.findMany({
       where: {
         AND: {
@@ -112,6 +113,7 @@ export class IntrestService {
     });
 
     if (present_user_tags.length > 0) {
+      // take out the non-existant user tags from input tags
       const not_present_tags = tags.filter((t) =>
         present_user_tags.some((put) => put.intrest.title !== t),
       );

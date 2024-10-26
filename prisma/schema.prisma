@@ -32,6 +32,7 @@ model user {
   profile_pic_id String?
 }
 
+//  model for hashtags, tags or user interests
 model intrest {
   id           String         @unique @default(uuid())
   title        String         @unique
